@@ -15,12 +15,15 @@ module cpu(
 
   reg isAdd;
   reg isImediate;
+  reg [2:0] aluOp;
   reg [7:0] immediateVal;
   wire [7:0] mux1out;
   wire [7:0] mux2out;
   wire [7:0] minusVal;
   reg [7:0] IN;
   wire [7:0] OUT2;
+
+  reg [7:0] OPCODE;
 
   assign sum = input_reg + accumulator;
   assign PC = sum[9];
@@ -41,6 +44,27 @@ module cpu(
             input_reg <= INSTRUCTION;
           end
       end
+  end
+
+  always @(INSTRUCTION) begin
+    OPCODE = INSTRUCTION[4:1];
+    case (OPCODE)
+      8'b00000000: begin
+      aluOp = 3'b000;
+      isAdd = 1'b1;
+      isImediate = 1'b1;
+      end
+      8'b00000001: begin
+      aluOp = 3'b000;
+      isAdd = 1'b1;
+      isImediate = 1'b0;
+      end
+      8'b00000010: begin
+      aluOp = 3'b001;
+      isAdd = 1'b1;
+      isImediate = 1'b0;
+      end
+    endcase
   end
 
   //multiplexer to choose between minus value and plus value
