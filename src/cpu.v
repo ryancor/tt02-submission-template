@@ -191,11 +191,12 @@ endmodule
 module alu(
   input [7:0] DATA1,
   input [7:0] DATA2,
-  input [7:0] RESULT,
+  output [7:0] RESULT,
   input [2:0] SELECT,
   output ZERO
 );
 
+  reg [7:0] RESULT;
   reg ZERO;
   reg [7:0] RshiftResult;
   // NOT DEFINED YET
