@@ -108,8 +108,10 @@ module cpu(
   mux2_1 mymux2(immediateVal, mux1out, isImediate, mux2out);
 
   // alu module
-  alu myalu(OUT1, mux2out, ALURESULT, aluOp, OUT2);
-
+  alu myalu(OUT1, mux2out, ALURESULT, aluOp);
+  always@(ALURESULT) begin
+    IN = ALURESULT;  //setting the reg input with the alu result
+  end
 endmodule
 
 module adder(
@@ -194,7 +196,6 @@ module alu(
   output ZERO
 );
 
-  reg [7:0] RESULT;
   reg ZERO;
   reg [7:0] RshiftResult;
   // NOT DEFINED YET
