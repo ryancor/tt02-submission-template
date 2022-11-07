@@ -19,7 +19,9 @@ module cpu(
   reg [7:0] immediateVal;
   wire [7:0] mux1out;
   wire [7:0] mux2out;
+  wire [7:0] ALURESULT;
   wire [7:0] minusVal;
+
   reg [7:0] IN;
   wire [7:0] OUT1;
   wire [7:0] OUT2;
@@ -34,6 +36,7 @@ module cpu(
 
   // adder to update pc from 4
   adder myadder(PC, PCRESULT);
+  // DOESN'T COMPILE
   // always @(posedge CLK) begin
   //    PC = PCRESULT;
   // end
@@ -88,12 +91,24 @@ module cpu(
 
   // including the registers
   reg_file myReg(IN, OUT1, OUT2, DESTINATION, SOURCE1, SOURCE2, write_en, CLK, RESET);
+  always @(INSTRUCTION) begin
+    DESTINATION  = INSTRUCTION[6:5];
+    SOURCE1   = INSTRUCTION[8:7];
+    SOURCE2 = INSTRUCTION[1:0];
+    immediateVal = INSTRUCTION[7:0];
+  end
+
+  // compliments two units for subtraction
+  twosCompliment mytwo(OUT2, minusVal);
 
   //multiplexer to choose between minus value and plus value
   mux2_1 mymux1(OUT2, minusVal, isAdd, mux1out);
 
   //multiplexer to chose between immediate value and mux1 output
   mux2_1 mymux2(immediateVal, mux1out, isImediate, mux2out);
+
+  // alu module
+  alu myalu(OUT1, mux2out, ALURESULT, aluOp, OUT2);
 
 endmodule
 
@@ -128,6 +143,17 @@ module mux2_1(
   end
 endmodule
 
+module twosCompliment(
+    input [7:0] in,
+    output [7:0] result
+);
+
+  reg result;
+  always @(*) begin
+    result = ~in+1;
+  end
+endmodule
+
 module reg_file(
   input [7:0] IN,
   output [7:0] OUT1,
@@ -158,4 +184,55 @@ module reg_file(
 
   assign OUT1 = regFile[OUT1ADDRESS];
   assign OUT2 = regFile[OUT2ADDRESS];
+endmodule
+
+module alu(
+  input [7:0] DATA1,
+  input [7:0] DATA2,
+  input [7:0] RESULT,
+  input [2:0] SELECT,
+  output ZERO
+);
+
+  reg [7:0] RESULT;
+  reg ZERO;
+  reg [7:0] RshiftResult;
+  // NOT DEFINED YET
+  //barrelShifter myRightLogicalShifter(DATA1,DATA2[7:5],RshiftResult);
+
+  always @(DATA1,DATA2,SELECT) begin
+   //selecting based on the SELECT input using s switch case
+   case(SELECT)
+     3'b000: begin
+      RESULT = DATA2; //Forward function
+     end
+     3'b001: begin
+      RESULT = DATA1 + DATA2; //Add and Sub function
+     end
+     3'b010: begin
+      RESULT = DATA1 & DATA2; //AND and Sub function
+     end
+     3'b011: begin
+      RESULT = DATA1 | DATA2; //OR and Sub function
+     end
+     3'b100: begin
+      RESULT = RshiftResult;
+     end
+     3'b101: begin
+      RESULT = 8'b00000000;
+     end
+     3'b110: begin
+      RESULT = 8'b00000000;
+     end
+     3'b111: begin
+      RESULT = 8'b00000000;
+     end
+   endcase
+ end
+
+ // creating the ZERO bit using the alu result
+ //modified part
+ always @(RESULT) begin
+  ZERO = RESULT[0]~|RESULT[1]~|RESULT[2]~|RESULT[3]~|RESULT[4]~|RESULT[5]~|RESULT[6]~|RESULT[7];
+ end
 endmodule
