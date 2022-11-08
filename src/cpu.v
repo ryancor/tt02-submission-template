@@ -199,8 +199,7 @@ module alu(
   reg [7:0] RESULT;
   reg ZERO;
   reg [7:0] RshiftResult;
-  // NOT DEFINED YET
-  //barrelShifter myRightLogicalShifter(DATA1,DATA2[7:5],RshiftResult);
+  barrelShifter myRightLogicalShifter(DATA1, DATA2[7:5], RshiftResult);
 
   always @(DATA1,DATA2,SELECT) begin
    //selecting based on the SELECT input using s switch case
@@ -237,4 +236,26 @@ module alu(
  always @(RESULT) begin
   ZERO = RESULT[0]~|RESULT[1]~|RESULT[2]~|RESULT[3]~|RESULT[4]~|RESULT[5]~|RESULT[6]~|RESULT[7];
  end
+endmodule
+
+module barrelShifter(
+  input [7:0] Ip,
+  output [7:0] Op,
+  input [2:0] shift_mag
+);
+
+  wire [7:0] ST1, ST2;
+
+  mux2_1 m0(1'b0, Ip[0], ST1[0], shift_mag[0]);
+  mux2_1 m1(Ip[0], Ip[1], ST1[1], shift_mag[0]);
+  mux2_1 m2(Ip[1], Ip[2], ST1[2], shift_mag[0]);
+  mux2_1 m3(Ip[2], Ip[3], ST1[3], shift_mag[0]);
+  mux2_1 m4(Ip[3], Ip[4], ST1[4], shift_mag[0]);
+  mux2_1 m5(Ip[4], Ip[5], ST1[5], shift_mag[0]);
+  mux2_1 m6(Ip[5], Ip[6], ST1[6], shift_mag[0]);
+  mux2_1 m7(Ip[6], Ip[7], ST1[7], shift_mag[0]);
+
+  mux2_1 m00(1'b0, Ip[0], ST1[0], shift_mag[1]);
+  mux2_1 m11(1'b0, Ip[1], ST1[1], shift_mag[1]);
+
 endmodule
