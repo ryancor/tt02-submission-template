@@ -4,9 +4,6 @@ module cpu(
   input [8:0] INSTRUCTION,
   input       write_en,
   input       CLK, RESET, RD, CS,
-  input [2:0] DESTINATION,
-  input [2:0] SOURCE1,
-  input [2:0] SOURCE2,
   input [7:0] INALU,
   output [7:0] OUT1,
   output [7:0] OUT2,
@@ -29,6 +26,9 @@ module cpu(
   wire [7:0] minusVal;
 
   reg [7:0] OPCODE;
+  reg [2:0] DESTINATION;
+  reg [2:0] SOURCE1;
+  reg [2:0] SOURCE2;
 
   assign sum = input_reg + accumulator;
   assign PC = sum[9];
