@@ -1,10 +1,10 @@
 ![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg)
 
-# What is Tiny Tapeout?
+# 8-bit CPU
 
-TinyTapeout is an educational project that aims to make it easier and cheaper than ever to get your digital designs manufactured on a real chip!
+An 8-bit test CPU that contains a basic instruction decoder, ALU, and SRAM.
 
-Go to https://tinytapeout.com for instructions!
+![](8bitcpu.svg)
 
 ## How to change the Wokwi project
 
