@@ -7,7 +7,7 @@ module cpu(
   input [2:0] DESTINATION,
   input [2:0] SOURCE1,
   input [2:0] SOURCE2,
-  input [7:0] IN,
+  input [7:0] INALU,
   output [7:0] OUT1,
   output [7:0] OUT2,
   output [8:0] PC,
@@ -89,7 +89,7 @@ module cpu(
   end
 
   // including the registers
-  reg_file myReg(IN, OUT1, OUT2, DESTINATION, SOURCE1, SOURCE2, write_en, CLK, RESET);
+  reg_file myReg(INALU, OUT1, OUT2, DESTINATION, SOURCE1, SOURCE2, write_en, CLK, RESET);
   always @(INSTRUCTION) begin
     DESTINATION  = INSTRUCTION[6:5];
     SOURCE1   = INSTRUCTION[8:7];
@@ -109,7 +109,7 @@ module cpu(
   // alu module
   alu myalu(OUT1, mux2out, ALURESULT, aluOp);
   always@(ALURESULT) begin
-    IN = ALURESULT;  //setting the reg input with the alu result
+    INALU = ALURESULT;  //setting the reg input with the alu result
   end
 
   // store data to ram
