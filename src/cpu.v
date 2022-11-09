@@ -3,7 +3,7 @@
 module cpu(
   input [8:0] INSTRUCTION,
   input       write_en,
-  input       CLK, RESET, CS, RD,
+  input       CLK, RESET,
   output [8:0] PC
 );
 
@@ -30,6 +30,9 @@ module cpu(
   reg [2:0] DESTINATION;
   reg [2:0] SOURCE1;
   reg [2:0] SOURCE2;
+
+  reg RD;
+  reg CS;
 
   assign sum = input_reg + accumulator;
   assign PC = sum[9];
@@ -114,6 +117,8 @@ module cpu(
   end
 
   // store data to ram
+  assign RD = isAdd;
+  assign CS = isImediate;
   staticRAM SRAM(input_reg, ALURESULT, PCRESULT, CS, write_en, RD, CLK);
 endmodule
 
