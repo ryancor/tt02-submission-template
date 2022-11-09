@@ -4,6 +4,7 @@ module cpu(
   input [8:0] INSTRUCTION,
   input       write_en,
   input       CLK, RESET, RD, CS,
+  input [7:0] INALU,
   output [8:0] PC,
   output [7:0] ALURESULT
 );
@@ -22,7 +23,6 @@ module cpu(
   wire [7:0] mux2out;
   wire [7:0] minusVal;
 
-  reg [7:0] INALU;
   wire [7:0] OUT1;
   wire [7:0] OUT2;
 
