@@ -3,8 +3,15 @@
 module cpu(
   input [8:0] INSTRUCTION,
   input       write_en,
-  input       CLK, RESET,
-  output [8:0] PC
+  input       CLK, RESET, RD, CS,
+  input [2:0] DESTINATION,
+  input [2:0] SOURCE1,
+  input [2:0] SOURCE2,
+  input [7:0] IN,
+  output [7:0] OUT1,
+  output [7:0] OUT2,
+  output [8:0] PC,
+  output [7:0] ALURESULT
 );
 
   wire [8:0] PCRESULT;
@@ -19,20 +26,9 @@ module cpu(
   reg [7:0] immediateVal;
   wire [7:0] mux1out;
   wire [7:0] mux2out;
-  wire [7:0] ALURESULT;
   wire [7:0] minusVal;
 
-  reg [7:0] IN;
-  wire [7:0] OUT1;
-  wire [7:0] OUT2;
-
   reg [7:0] OPCODE;
-  reg [2:0] DESTINATION;
-  reg [2:0] SOURCE1;
-  reg [2:0] SOURCE2;
-
-  reg RD;
-  reg CS;
 
   assign sum = input_reg + accumulator;
   assign PC = sum[9];
@@ -117,8 +113,6 @@ module cpu(
   end
 
   // store data to ram
-  assign RD = isAdd;
-  assign CS = isImediate;
   staticRAM SRAM(input_reg, ALURESULT, PCRESULT, CS, write_en, RD, CLK);
 endmodule
 
