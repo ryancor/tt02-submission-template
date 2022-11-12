@@ -1,17 +1,17 @@
 `default_nettype none
 
 module cpu(
-  input [8:0] INSTRUCTION,
+  input [7:0] INSTRUCTION,
   input       write_en,
   input       CLK, RESET, RD, CS,
-  output [8:0] PC
+  output [7:0] PC
 );
 
-  wire [8:0] PCRESULT;
-  reg [8:0] accumulator;
-  reg [8:0] input_reg;
+  wire [7:0] PCRESULT;
+  reg [7:0] accumulator;
+  reg [7:0] input_reg;
 
-  wire [9:0] sum;
+  wire [7:0] sum;
 
   reg isAdd;
   reg isImediate;
@@ -27,15 +27,15 @@ module cpu(
   wire [7:0] OUT2;
 
   reg [7:0] OPCODE;
-  reg [2:0] DESTINATION;
-  reg [2:0] SOURCE1;
-  reg [2:0] SOURCE2;
+  reg [1:0] DESTINATION;
+  reg [1:0] SOURCE1;
+  reg [1:0] SOURCE2;
 
   reg [7:0] ramData;
   reg [7:0] ramAddr;
 
   assign sum = input_reg + accumulator;
-  assign PC = sum[9];
+  assign PC[2:0] = sum[2:0];
 
   // adder to update pc from 4
   adder myadder(PC, PCRESULT);
@@ -45,10 +45,10 @@ module cpu(
 
   always @(posedge CLK or posedge RESET) begin
       if (RESET) begin
-          input_reg <= 9'h00 ;
-          accumulator <= 9'h00;
+          input_reg <= 8'h00 ;
+          accumulator <= 8'h00;
       end else begin
-          accumulator <= sum[8:0];
+          accumulator <= sum;
   	      if (write_en) begin
             input_reg <= INSTRUCTION;
           end
@@ -56,7 +56,7 @@ module cpu(
   end
 
   always @(INSTRUCTION) begin
-    OPCODE = INSTRUCTION[4:1];
+    OPCODE = INSTRUCTION[7:0];
     case (OPCODE)
       8'b00000000: begin
         aluOp = 3'b000;
@@ -88,15 +88,25 @@ module cpu(
         isAdd = 1'b1;
         isImediate = 1'b0;
       end
+      8'b00000111: begin
+        aluOp = 3'b111;
+        isAdd = 1'b1;
+        isImediate = 1'b0;
+      end
+      8'b00000110: begin
+        aluOp = 3'b110;
+        isAdd = 1'b1;
+        isImediate = 1'b0;
+      end
     endcase
   end
 
   // including the registers
   reg_file myReg(INALU, OUT1, OUT2, DESTINATION, SOURCE1, SOURCE2, write_en, CLK, RESET);
   always @(INSTRUCTION) begin
-    DESTINATION  = INSTRUCTION[6:5];
-    SOURCE1   = INSTRUCTION[8:7];
-    SOURCE2 = INSTRUCTION[1:0];
+    DESTINATION  = INSTRUCTION[7:6];
+    SOURCE1   = INSTRUCTION[5:4];
+    SOURCE2 = INSTRUCTION[3:2];
     immediateVal = INSTRUCTION[7:0];
   end
 
@@ -124,17 +134,15 @@ module cpu(
 endmodule
 
 module adder(
-  input [8:0] PCINPUT,
-  output [8:0] RESULT
+  input [7:0] PCINPUT,
+  output [7:0] RESULT
 );
 
-  reg [8:0] TMP_RESULT;
+  reg [7:0] RESULT;
 
   always @(PCINPUT) begin
-    TMP_RESULT = PCINPUT + 4;
+    RESULT = PCINPUT + 4;
   end
-
-  assign RESULT = TMP_RESULT;
 endmodule
 
 module mux2_1(
