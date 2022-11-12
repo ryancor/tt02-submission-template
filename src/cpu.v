@@ -4,9 +4,7 @@ module cpu(
   input [8:0] INSTRUCTION,
   input       write_en,
   input       CLK, RESET, RD, CS,
-  input [7:0] INALU,
-  output [8:0] PC,
-  output [7:0] ALURESULT
+  output [8:0] PC
 );
 
   wire [8:0] PCRESULT;
@@ -18,6 +16,8 @@ module cpu(
   reg isAdd;
   reg isImediate;
   reg [2:0] aluOp;
+  reg [7:0] INALU;
+  wire [7:0] ALURESULT;
   reg [7:0] immediateVal;
   wire [7:0] mux1out;
   wire [7:0] mux2out;
@@ -31,15 +31,17 @@ module cpu(
   reg [2:0] SOURCE1;
   reg [2:0] SOURCE2;
 
+  reg [7:0] ramData;
+  reg [7:0] ramAddr;
+
   assign sum = input_reg + accumulator;
   assign PC = sum[9];
 
   // adder to update pc from 4
   adder myadder(PC, PCRESULT);
-  // DOESN'T COMPILE
-  // always @(posedge CLK) begin
-  //    PC = PCRESULT;
-  // end
+  always @(*) begin
+     PC = PCRESULT;
+  end
 
   always @(posedge CLK or posedge RESET) begin
       if (RESET) begin
@@ -109,12 +111,16 @@ module cpu(
 
   // alu module
   alu myalu(OUT1, mux2out, ALURESULT, aluOp);
-  always@(ALURESULT) begin
+  always @(ALURESULT) begin
     INALU = ALURESULT;  //setting the reg input with the alu result
   end
 
   // store data to ram
-  staticRAM SRAM(input_reg, ALURESULT, PCRESULT, CS, write_en, RD, CLK);
+  always @(posedge CLK) begin
+    ramData = INALU;
+    ramAddr = PC;
+  end
+  staticRAM SRAM(ramData, ramAddr, CS, write_en, RD, CLK);
 endmodule
 
 module adder(
@@ -122,11 +128,13 @@ module adder(
   output [8:0] RESULT
 );
 
-  reg RESULT;
+  reg [8:0] TMP_RESULT;
 
   always @(PCINPUT) begin
-    RESULT = PCINPUT + 4;
+    TMP_RESULT = PCINPUT + 4;
   end
+
+  assign RESULT = TMP_RESULT;
 endmodule
 
 module mux2_1(
@@ -140,12 +148,23 @@ module mux2_1(
 
   always @(in0, in1, se1) begin
     if(se1 == 1'b1) begin
-          out = in0;
+      out = in0;
     end
     else begin
-          out = in1;
+      out = in1;
     end
   end
+endmodule
+
+module mux21_1b(
+  input D0,
+  input D1,
+  input S,
+  output Y
+);
+
+  assign Y = (S) ? D1:D0;
+
 endmodule
 
 module twosCompliment(
@@ -176,14 +195,14 @@ module reg_file(
   always @(*) begin
     if (RESET == 1) begin
       for (i = 0; i < 8; i = i + 1) begin
-        regFile[i] = 8'b00000000;
+        regFile[i] <= 8'b00000000;
       end
     end
   end
 
   always @(posedge CLK) begin
     if (WRITE == 1'b1 && RESET == 1'b0) begin
-      regFile[INADDRESS] = IN;
+      regFile[INADDRESS] <= IN;
     end
   end
 
@@ -202,7 +221,7 @@ module alu(
   reg [7:0] RESULT;
   reg ZERO;
   reg [7:0] RshiftResult;
-  barrelShifter myRightLogicalShifter(DATA1, DATA2[7:5], RshiftResult);
+  barrelShifter myRightLogicalShifter(DATA1, DATA2, RshiftResult[2:0]);
 
   always @(DATA1,DATA2,SELECT) begin
    //selecting based on the SELECT input using s switch case
@@ -241,30 +260,31 @@ module alu(
  end
 endmodule
 
-module staticRAM(
-  input [8-1:0] dataIn,
-  output [8-1:0] dataOut,
-  input [8-1:0] Addr,
-  input CS,
-  input WE,
-  input RD,
-  input Clk
+module staticRAM (
+  input [8-1:0]	data,
+  input [8-1:0]	addr,
+  input cs,
+  input we,
+  input rd,
+  input clk
 );
 
-  reg [8-1:0] dataOut;
-  reg [8-1:0] SRAM [8-1:0];
+  reg [8-1:0] 	tmp_data;
+  reg [8-1:0] 	mem [16];
 
-
-  always @ (posedge Clk) begin
-    if (CS == 1'b1) begin
-      if (WE == 1'b1 && RD == 1'b0) begin
-        SRAM [Addr] = dataIn;
-      end
-      else if (RD == 1'b1 && WE == 1'b0) begin
-        dataOut = SRAM [Addr];
-      end
+  always @ (posedge clk) begin
+    if (cs & we) begin
+      mem[addr] <= data;
     end
   end
+
+  always @ (posedge clk) begin
+    if (cs & !we) begin
+    	tmp_data <= mem[addr];
+    end
+  end
+
+  assign data = cs & rd & !we ? tmp_data : 'hz;
 endmodule
 
 
@@ -276,32 +296,32 @@ module barrelShifter(
 
   wire [7:0] ST1, ST2;
 
-  mux2_1 m0(1'b0, Ip[0], shift_mag[0], ST1[0]);
-  mux2_1 m1(Ip[0], Ip[1], shift_mag[0], ST1[1]);
-  mux2_1 m2(Ip[1], Ip[2], shift_mag[0], ST1[2]);
-  mux2_1 m3(Ip[2], Ip[3], shift_mag[0], ST1[3]);
-  mux2_1 m4(Ip[3], Ip[4], shift_mag[0], ST1[4]);
-  mux2_1 m5(Ip[4], Ip[5], shift_mag[0], ST1[5]);
-  mux2_1 m6(Ip[5], Ip[6], shift_mag[0], ST1[6]);
-  mux2_1 m7(Ip[6], Ip[7], shift_mag[0], ST1[7]);
+  mux21_1b m0(1'b0, Ip[0], shift_mag[0], ST1[0]);
+  mux21_1b m1(Ip[0], Ip[1], shift_mag[0], ST1[1]);
+  mux21_1b m2(Ip[1], Ip[2], shift_mag[0], ST1[2]);
+  mux21_1b m3(Ip[2], Ip[3], shift_mag[0], ST1[3]);
+  mux21_1b m4(Ip[3], Ip[4], shift_mag[0], ST1[4]);
+  mux21_1b m5(Ip[4], Ip[5], shift_mag[0], ST1[5]);
+  mux21_1b m6(Ip[5], Ip[6], shift_mag[0], ST1[6]);
+  mux21_1b m7(Ip[6], Ip[7], shift_mag[0], ST1[7]);
 
-  mux2_1 m00(1'b0, Ip[0], shift_mag[1], ST1[0]);
-  mux2_1 m11(1'b0, Ip[1], shift_mag[1], ST1[1]);
+  mux21_1b m00(1'b0, Ip[0], shift_mag[1], ST1[0]);
+  mux21_1b m11(1'b0, Ip[1], shift_mag[1], ST1[1]);
 
-  mux2_1 m22 (ST1[0], ST1[2], shift_mag[1], ST2[2]);
-  mux2_1 m33 (ST1[1], ST1[3], shift_mag[1], ST2[3]);
-  mux2_1 m44 (ST1[2], ST1[4], shift_mag[1], ST2[4]);
-  mux2_1 m55 (ST1[3], ST1[5], shift_mag[1], ST2[5]);
-  mux2_1 m66 (ST1[4], ST1[6], shift_mag[1], ST2[6]);
-  mux2_1 m77 (ST1[5], ST1[7], shift_mag[1], ST2[7]);
+  mux21_1b m22 (ST1[0], ST1[2], shift_mag[1], ST2[2]);
+  mux21_1b m33 (ST1[1], ST1[3], shift_mag[1], ST2[3]);
+  mux21_1b m44 (ST1[2], ST1[4], shift_mag[1], ST2[4]);
+  mux21_1b m55 (ST1[3], ST1[5], shift_mag[1], ST2[5]);
+  mux21_1b m66 (ST1[4], ST1[6], shift_mag[1], ST2[6]);
+  mux21_1b m77 (ST1[5], ST1[7], shift_mag[1], ST2[7]);
 
-  mux2_1 m000 (1'b0  , ST2[0], shift_mag[2], Op[0]);
-  mux2_1 m111 (1'b0  , ST2[1], shift_mag[2], Op[1]);
-  mux2_1 m222 (1'b0  , ST2[2], shift_mag[2], Op[2]);
-  mux2_1 m333 (1'b0  , ST2[3], shift_mag[2], Op[3]);
-  mux2_1 m444 (ST2[0], ST2[4], shift_mag[2], Op[4]);
-  mux2_1 m555 (ST2[1], ST2[5], shift_mag[2], Op[5]);
-  mux2_1 m666 (ST2[2], ST2[6], shift_mag[2], Op[6]);
-  mux2_1 m777 (ST2[3], ST2[7], shift_mag[2], Op[7]);
+  mux21_1b m000 (1'b0  , ST2[0], shift_mag[2], Op[0]);
+  mux21_1b m111 (1'b0  , ST2[1], shift_mag[2], Op[1]);
+  mux21_1b m222 (1'b0  , ST2[2], shift_mag[2], Op[2]);
+  mux21_1b m333 (1'b0  , ST2[3], shift_mag[2], Op[3]);
+  mux21_1b m444 (ST2[0], ST2[4], shift_mag[2], Op[4]);
+  mux21_1b m555 (ST2[1], ST2[5], shift_mag[2], Op[5]);
+  mux21_1b m666 (ST2[2], ST2[6], shift_mag[2], Op[6]);
+  mux21_1b m777 (ST2[3], ST2[7], shift_mag[2], Op[7]);
 
 endmodule
