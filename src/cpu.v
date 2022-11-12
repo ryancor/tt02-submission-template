@@ -35,7 +35,7 @@ module cpu(
   reg [7:0] ramAddr;
 
   assign sum = input_reg + accumulator;
-  assign PC[2:0] = sum[2:0];
+  assign PC[6:0] = sum[6:0];
 
   // adder to update pc from 4
   adder myadder(PC, PCRESULT);
