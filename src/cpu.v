@@ -4,7 +4,8 @@ module cpu(
   input [7:0] INSTRUCTION,
   input       write_en,
   input       CLK, RESET, RD, CS,
-  output [7:0] PC
+  output [7:0] PC,
+  output [7:0] DATA
 );
 
   wire [7:0] PCRESULT;
@@ -130,7 +131,7 @@ module cpu(
   mux2_1 mymux3(OUT2, minusVal2, isAdd, mux1out);
 
   // alu module
-  alu myalu(OUT1, mux2out, ALURESULT, PC, aluOp, immediateVal);
+  alu myalu(OUT1, mux2out, ALURESULT, DATA, aluOp, immediateVal);
   always @(ALURESULT) begin
     INALU = ALURESULT;  //setting the reg input with the alu result
     ramData = INALU;
@@ -233,7 +234,7 @@ module alu(
   input [7:0] DATA1,
   input [7:0] DATA2,
   output [7:0] RESULT,
-  output [7:0] PC,
+  output [7:0] Data,
   input [2:0] SELECT,
   input [7:0] RshiftResult,
   output ZERO
@@ -248,23 +249,23 @@ module alu(
    case(SELECT)
      3'b000: begin
       RESULT = DATA2; //Forward function
-      PC = DATA2;
+      Data = DATA2;
      end
      3'b001: begin
       RESULT = DATA1 + DATA2; //Add and Sub function
-      PC = DATA1 + DATA2;
+      Data = DATA1 + DATA2;
      end
      3'b010: begin
       RESULT = DATA1 & DATA2; //AND and Sub function
-      PC = DATA1 & DATA2;
+      Data = DATA1 & DATA2;
      end
      3'b011: begin
       RESULT = DATA1 | DATA2; //OR and Sub function
-      PC = DATA1 | DATA2;
+      Data = DATA1 | DATA2;
      end
      3'b100: begin
       RESULT = RshiftResult;
-      PC = RshiftResult;
+      Data = RshiftResult;
      end
      3'b101: begin
       RESULT = 8'b00000000;
@@ -281,7 +282,7 @@ module alu(
  // creating the ZERO bit using the alu result
  //modified part
  always @(RESULT) begin
-  ZERO = RESULT[0]~|PC[1]~|RESULT[2]~|PC[3]~|RESULT[4]~|RESULT[5]~|PC[6]~|RESULT[7];
+  ZERO = RESULT[0]~|Data[1]~|RESULT[2]~|Data[3]~|RESULT[4]~|RESULT[5]~|Data[6]~|RESULT[7];
  end
 endmodule
 
