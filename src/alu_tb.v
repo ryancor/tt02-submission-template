@@ -1,38 +1,72 @@
- `timescale 1ns / 1ps
-
 module tb_alu;
-  reg[1:0] A,B;
- 	reg[3:0] ALU_Sel;
+	reg [7:0] A,B;
+	reg [3:0] ALU_Sel;
 
-  wire[6:0] ALU_Out;
- 	wire CarryOut;
+	wire [7:0] ALU_Out;
+	wire CarryOut;
 
- 	integer i;
+ 	//integer i;
 
- 	alu test_unit(
- 		A,B,  // ALU 8-bit Inputs
-		ALU_Sel,// ALU Selection
-  	ALU_Out, // ALU 8-bit Output
- 		arryOut // Carry Out Flag
- 	);
+  alu test_unit(
+    .A(A),
+    .B(B),  // ALU 8-bit Inputs
+    .ALU_Sel(ALU_Sel),// ALU Selection
+    .ALU_Out(ALU_Out), // ALU 8-bit Output
+    .CarryOut(CarryOut) // Carry Out Flag
+  );
 
 	initial begin
-  		$dumpfile("dump.vcd");
-   		$dumpvars(1);
+    $dumpfile("dump.vcd");
+    $dumpvars(1);
 
-    	$display("ALU.");
+    $display("ALU.");
 
-    	// hold reset state for 100 ns.
-   		A = 8'h0A;
-    	B = 4'h02;
-    	ALU_Sel = 4'h0;
+    // hold reset state for 100 ns.
+    A = 8'h0A;
+    B = 8'h02;
+    ALU_Sel = 4'b1111;
 
-    	for (i=0;i<=15;i=i+1) begin
-    		ALU_Sel = ALU_Sel + 8'h01;
-    		#10;
-  		end
+    #20;
 
-      A = 8'hF6;
-      B = 8'h0A;
-  	end
+    A = 8'h0B;
+    B = 8'h03;
+    ALU_Sel = 4'b1011;
+
+    #20
+
+    // for (i=0;i<=15;i=i+1) begin
+    //   ALU_Sel = ALU_Sel + 8'h01;
+    //   #10;
+    // end
+
+    A = 8'hF6;
+    B = 8'h0A;
+    ALU_Sel = 4'b1010;
+
+    #20;
+
+    A = 8'hA0;
+    B = 8'hC7;
+    ALU_Sel = 4'b0001;
+
+    #20;
+
+    A = 8'h23;
+    B = 8'h05;
+    ALU_Sel = 4'b0011;
+
+    #20;
+
+    A = 8'h10;
+    B = 8'h02;
+    ALU_Sel = 4'b0011;
+
+    #20;
+
+    A = 8'hA;
+    B = 8'h02;
+    ALU_Sel = 4'b0011;
+
+    #20;
+  end
 endmodule
