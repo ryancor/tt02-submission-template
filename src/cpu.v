@@ -22,6 +22,7 @@ module cpu(
   wire [7:0] mux1out;
   wire [7:0] mux2out;
   wire [7:0] minusVal;
+  wire [7:0] minusVal2;
 
   wire [7:0] OUT1;
   wire [7:0] OUT2;
@@ -31,6 +32,7 @@ module cpu(
   reg [1:0] SOURCE1;
   reg [1:0] SOURCE2;
 
+  reg [7:0] ramOut;
   reg [7:0] ramData;
   reg [7:0] ramAddr;
 
@@ -108,10 +110,15 @@ module cpu(
     SOURCE1   = INSTRUCTION[5:4];
     SOURCE2 = INSTRUCTION[3:2];
     immediateVal = INSTRUCTION[7:0];
+    CS = OUT1[0];
+    RD = OUT2[1];
   end
 
   // compliments two units for subtraction
-  twosCompliment mytwo(OUT2, minusVal);
+  twosCompliment mytwo1(OUT2, minusVal);
+
+  // compliments two units for ramOut
+  twosCompliment mytwo2(ramOut, minusVal2);
 
   //multiplexer to choose between minus value and plus value
   mux2_1 mymux1(OUT2, minusVal, isAdd, mux1out);
@@ -119,18 +126,22 @@ module cpu(
   //multiplexer to chose between immediate value and mux1 output
   mux2_1 mymux2(immediateVal, mux1out, isImediate, mux2out);
 
+  //multiplexer to choose between minus value and plus value ram
+  mux2_1 mymux3(OUT2, minusVal2, isAdd, mux1out);
+
   // alu module
-  alu myalu(OUT1, mux2out, ALURESULT, aluOp);
+  alu myalu(OUT1, mux2out, ALURESULT, PC, aluOp, immediateVal);
   always @(ALURESULT) begin
     INALU = ALURESULT;  //setting the reg input with the alu result
-  end
-
-  // store data to ram
-  always @(posedge CLK) begin
     ramData = INALU;
     ramAddr = PC;
   end
+
+  // store data to ram
   staticRAM SRAM(ramData, ramAddr, CS, write_en, RD, CLK);
+  always @(posedge CLK) begin
+    ramOut = ramData;
+  end
 endmodule
 
 module adder(
@@ -222,13 +233,14 @@ module alu(
   input [7:0] DATA1,
   input [7:0] DATA2,
   output [7:0] RESULT,
+  output [7:0] PC,
   input [2:0] SELECT,
+  input [7:0] RshiftResult,
   output ZERO
 );
 
   reg [7:0] RESULT;
   reg ZERO;
-  reg [7:0] RshiftResult;
   barrelShifter myRightLogicalShifter(DATA1, DATA2, RshiftResult[2:0]);
 
   always @(DATA1,DATA2,SELECT) begin
@@ -236,18 +248,23 @@ module alu(
    case(SELECT)
      3'b000: begin
       RESULT = DATA2; //Forward function
+      PC = DATA2;
      end
      3'b001: begin
       RESULT = DATA1 + DATA2; //Add and Sub function
+      PC = DATA1 + DATA2;
      end
      3'b010: begin
       RESULT = DATA1 & DATA2; //AND and Sub function
+      PC = DATA1 & DATA2;
      end
      3'b011: begin
       RESULT = DATA1 | DATA2; //OR and Sub function
+      PC = DATA1 | DATA2;
      end
      3'b100: begin
       RESULT = RshiftResult;
+      PC = RshiftResult;
      end
      3'b101: begin
       RESULT = 8'b00000000;
@@ -269,7 +286,7 @@ module alu(
 endmodule
 
 module staticRAM (
-  input [8-1:0]	data,
+  inout [8-1:0]	data,
   input [8-1:0]	addr,
   input cs,
   input we,
