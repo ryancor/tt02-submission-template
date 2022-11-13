@@ -236,7 +236,8 @@ module alu(
   output [7:0] PC,
   input [2:0] SELECT,
   input [7:0] RshiftResult,
-  output ZERO
+  output ZERO,
+  output ZERO2
 );
 
   reg [7:0] RESULT;
@@ -282,6 +283,10 @@ module alu(
  //modified part
  always @(RESULT) begin
   ZERO = RESULT[0]~|RESULT[1]~|RESULT[2]~|RESULT[3]~|RESULT[4]~|RESULT[5]~|RESULT[6]~|RESULT[7];
+ end
+
+ always @(PC) begin
+  ZERO2 = PC[0]~|PC[1]~|PC[2]~|PC[3]~|PC[4]~|PC[5]~|PC[6]~|PC[7];
  end
 endmodule
 
