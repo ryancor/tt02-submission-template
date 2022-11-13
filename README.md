@@ -1,8 +1,8 @@
 ![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg)
 
-# 8-bit CPU
+# 2-bit ALU
 
-An 8-bit test CPU that contains a basic instruction decoder, ALU, and SRAM.
+A 2-bit test ALU that contains 16 different types of calculations with a 4-bit select operation.
 
 ![](8bitcpu.svg)
 
