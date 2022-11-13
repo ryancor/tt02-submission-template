@@ -24,9 +24,9 @@ module cpu(
   wire [7:0] minusVal;
   wire [7:0] minusVal2;
 
+  reg write_en;
   reg RD;
   reg CS;
-  reg write_en;
   wire [7:0] OUT1;
   wire [7:0] OUT2;
 
@@ -64,41 +64,49 @@ module cpu(
     OPCODE = INSTRUCTION[7:0];
     case (OPCODE)
       8'b00000000: begin
+        write_en = 1'b1;
         aluOp = 3'b000;
         isAdd = 1'b1;
         isImediate = 1'b1;
       end
       8'b00000001: begin
+        write_en = 1'b1;
         aluOp = 3'b000;
         isAdd = 1'b1;
         isImediate = 1'b0;
       end
       8'b00000010: begin
+        write_en = 1'b1;
         aluOp = 3'b001;
         isAdd = 1'b1;
         isImediate = 1'b0;
       end
       8'b00000011: begin
+        write_en = 1'b1;
         aluOp = 3'b001;
         isAdd = 1'b0;
         isImediate = 1'b0;
       end
       8'b00000100: begin
+        write_en = 1'b1;
         aluOp = 3'b010;
         isAdd = 1'b1;
         isImediate = 1'b0;
       end
       8'b00000101: begin
+        write_en = 1'b1;
         aluOp = 3'b011;
         isAdd = 1'b1;
         isImediate = 1'b0;
       end
       8'b00000111: begin
+        write_en = 1'b1;
         aluOp = 3'b111;
         isAdd = 1'b1;
         isImediate = 1'b0;
       end
       8'b00000110: begin
+        write_en = 1'b1;
         aluOp = 3'b110;
         isAdd = 1'b1;
         isImediate = 1'b0;
