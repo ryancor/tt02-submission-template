@@ -2,8 +2,7 @@
 
 module cpu(
   input [7:0] INSTRUCTION,
-  input       write_en,
-  input       CLK, RESET, RD, CS,
+  input       CLK, RESET,
   output [7:0] PC,
   output [7:0] DATA
 );
@@ -25,6 +24,9 @@ module cpu(
   wire [7:0] minusVal;
   wire [7:0] minusVal2;
 
+  reg RD;
+  reg CS;
+  reg write_en;
   wire [7:0] OUT1;
   wire [7:0] OUT2;
 
