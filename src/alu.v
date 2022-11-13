@@ -12,15 +12,18 @@ module alu(
 	assign tmp = {1'b0, A} + {1'b0, B};
 	assign CarryOut = tmp[7];
 	
-	ripple_carry_adder rca0(A, B, ALU_Sel, tmp[0]);
-  ripple_carry_adder rca1(A, B, ALU_Sel, tmp[1]);
+	wire [3:0] ALU_Add;
+	wire [3:0] ALU_Sub;
+
+	ripple_carry_adder rca0(A, B, ALU_Add, tmp[0]);
+	ripple_carry_adder rca1(A, B, ALU_Sub, tmp[1]);
 
 	always @(*) begin
 		case(ALU_Sel)
 			4'b0000:
-				ALU_Result = A + B;
+				ALU_Result = A + B + ALU_Add;
 			4'b0001:
-				ALU_Result = A - B;
+				ALU_Result = A - B - ALU_Sub;
 			4'b0010:
 				ALU_Result = A * B;
 			4'b0011: // Division
