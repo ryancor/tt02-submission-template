@@ -3,8 +3,8 @@ module cpu_top (
 	output [7:0] io_out
 );
 	
-	cpu cpu(.INSTRUCTION(io_in[6:1]), .CLK(io_in[0]), .RESET(io_in[7]), 
-		.PC(io_out[7:4]), .DATA(io_out[3:0])
+	cpu cpu(.A(io_in[7:6]), .B(io_in[5:4]), .ALU_Sel(io_in[3:0]), 
+		.ALU_Out(io_out[6:0]), .CarryOut(io_out[7])
   );
 	
 endmodule
