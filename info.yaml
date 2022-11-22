@@ -1,4 +1,4 @@
---- 
+---
 # TinyTapeout project information
 project:
   wokwi_id:    0        # If using wokwi, set this to your project's ID
@@ -13,14 +13,14 @@ project:
 # Here is an example: https://github.com/mattvenn/tinytapeout_m_segments/blob/main/info.yaml
 #
 # This info will be automatically collected and used to make a datasheet for the chip.
-documentation: 
-  author:       "Ryan C"      # Your name
-  discord:      "hackeranium"      # Your discord handle
+documentation:
+  author:       "Ryan Cornateanu"      # Your name
+  discord:      "hackeranium#2982"      # Your discord handle - make sure to include the # part as well
   title:        "ALU"      # Project title
   description:  "2bit ALU with a ripple carry adder that has the capability to perform 16 different calculations"      # Short description of what your project does
-  how_it_works: "todo"      # Longer description of how the project works
-  how_to_test:  "todo"      # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
-  external_hw:  "todo"      # Describe any external hardware needed
+  how_it_works: ""      # Longer description of how the project works
+  how_to_test:  ""      # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
+  external_hw:  ""      # Describe any external hardware needed
   language:     "Verilog" # other examples include Verilog, Amaranth, VHDL, etc
   doc_link:     ""      # URL to longer form documentation, eg the README.md in your repository
   clock_hz:     0       # Clock frequency in Hz (if required) we are expecting max clock frequency to be ~6khz. Provided on input 0.
@@ -43,4 +43,3 @@ documentation:
     - ALU_Out6
     - ALU_Out7
     - CarryOut
-
