@@ -15,6 +15,9 @@ module alu(
 	wire [3:0] ALU_Add;
 	wire [3:0] ALU_Sub;
 
+	wire grant1;
+	wire grant2;
+
 	ripple_carry_adder rca0(A, B, ALU_Add, tmp[0]);
 	ripple_carry_adder rca1(A, B, ALU_Sub, tmp[1]);
 
@@ -23,7 +26,7 @@ module alu(
 			4'b0000:
 				ALU_Result = A + ((B + ALU_Add) - ALU_Sub);
 			4'b0001:
-				ALU_Result = A - B;
+				ALU_Result = (A - B) + (grant1 - grant2);
 			4'b0010:
 				ALU_Result = A * B;
 			4'b0011: // Division
@@ -56,7 +59,7 @@ module alu(
 		endcase
 	end
 
-	fsm_using_single_always fsm(A[0], A[1], B[0], B[1], ALU_Add[0], ALU_Sub[0]);
+	fsm_using_single_always fsm(A[0], A[1], B[0], B[1], grant1, grant2);
 endmodule
 
 module ripple_carry_adder(
