@@ -10,8 +10,8 @@ module alu(
 	wire [7:0] tmp;
 	assign ALU_Out = ALU_Result;
 	assign tmp = {1'b0, A} + {1'b0, B};
-	assign CarryOut = tmp[7];
-	
+	assign CarryOut = tmp[2];
+
 	wire [3:0] ALU_Add;
 	wire [3:0] ALU_Sub;
 
@@ -21,9 +21,9 @@ module alu(
 	always @(*) begin
 		case(ALU_Sel)
 			4'b0000:
-				ALU_Result = A + B + ALU_Add;
+				ALU_Result = A + ((B + ALU_Add) - ALU_Sub);
 			4'b0001:
-				ALU_Result = A - B - ALU_Sub;
+				ALU_Result = A - B;
 			4'b0010:
 				ALU_Result = A * B;
 			4'b0011: // Division
@@ -55,6 +55,8 @@ module alu(
 			default: ALU_Result = A + B;
 		endcase
 	end
+
+	fsm_using_single_always fsm(A[0], A[1], B[0], B[1], ALU_Add[0], ALU_Sub[0]);
 endmodule
 
 module ripple_carry_adder(
@@ -90,3 +92,51 @@ module fulladder(
 	assign S = temp;
 	assign Cout = temp[1];
 endmodule
+
+module fsm_using_single_always (
+	input clock, // clock
+	input reset, // Active high, syn reset
+	input req_0, // Request 0
+	input req_1, // Request 1
+	output gnt_0, // Grant 0
+	output gnt_1
+);
+
+	reg gnt_0,gnt_1;
+	reg [3-1:0] state; // Seq part of the FSM
+	reg [3-1:0] next_state; // combo part of FSM
+
+	always @ (posedge clock) begin : FSM
+		if (reset == 1'b1) begin
+			state <=  3'b001;
+			gnt_0 <= 0;
+			gnt_1 <= 0;
+		end
+		else begin
+			case(state)
+				3'b001 : if (req_0 == 1'b1) begin
+						state <=  3'b010;
+						gnt_0 <= 1;
+					end else if (req_1 == 1'b1) begin
+						gnt_1 <= 1;
+						state <=  3'b100;
+					end else begin
+						state <=  3'b001;
+					end
+				3'b010 : if (req_0 == 1'b1) begin
+						state <=  3'b010;
+					end else begin
+						gnt_0 <= 0;
+						state <=  3'b001;
+					end
+				3'b100 : if (req_1 == 1'b1) begin
+						state <=  3'b100;
+					end else begin
+						gnt_1 <= 0;
+						state <=  3'b001;
+					end
+				default : state <=  3'b001;
+			endcase
+		end
+	end
+ endmodule
