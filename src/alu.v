@@ -10,16 +10,22 @@ module alu(
 	wire [7:0] tmp;
 	assign ALU_Out = ALU_Result;
 	assign tmp = {1'b0, A} + {1'b0, B};
-	assign CarryOut = tmp[2];
+	assign CarryOut = tmp[3];
 
 	wire [3:0] ALU_Add;
 	wire [3:0] ALU_Sub;
+	wire [3:0] ALU_Gen;
 
 	wire grant1;
 	wire grant2;
+	wire grant3;
+	wire grant4;
 
 	ripple_carry_adder rca0(A, B, ALU_Add, tmp[0]);
 	ripple_carry_adder rca1(A, B, ALU_Sub, tmp[1]);
+	ripple_carry_adder rca2(A, B, ALU_Gen, tmp[2]);
+
+	fsm_using_single_always fsm0(A[0], A[1], B[0], B[1], grant1, grant2);
 
 	always @(*) begin
 		case(ALU_Sel)
@@ -28,9 +34,9 @@ module alu(
 			4'b0001:
 				ALU_Result = (A - B) + (grant1 - grant2);
 			4'b0010:
-				ALU_Result = A * B;
+				ALU_Result = A * B * ALU_Gen;
 			4'b0011: // Division
-				ALU_Result = A/B;
+				ALU_Result = A/B + (grant3 - grant4);
 			4'b0100: // Logical shift left
 				ALU_Result = A<<1;
 			4'b0101: // Logical shift right
@@ -59,7 +65,7 @@ module alu(
 		endcase
 	end
 
-	fsm_using_single_always fsm(A[0], A[1], B[0], B[1], grant1, grant2);
+	fsm_using_single_always fsm1(A[1], A[0], B[1], CarryOut, grant3, grant4);
 endmodule
 
 module ripple_carry_adder(
