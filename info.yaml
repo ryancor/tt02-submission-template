@@ -18,7 +18,7 @@ documentation:
   discord:      "hackeranium#2982"      # Your discord handle - make sure to include the # part as well
   title:        "ALU"      # Project title
   description:  "2bit ALU with a ripple carry adder that has the capability to perform 16 different calculations"      # Short description of what your project does
-  how_it_works: "TODO"      # Longer description of how the project works
+  how_it_works: "When 4 bits total are input'd into the ALU, it goes through 3 ripple carries and two finite state machines that adds to a temporary value that gets included in the basic ALU calculations"      # Longer description of how the project works
   how_to_test:  "TODO"      # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
   external_hw:  ""      # Describe any external hardware needed
   language:     "Verilog" # other examples include Verilog, Amaranth, VHDL, etc

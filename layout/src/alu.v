@@ -30,17 +30,17 @@ module alu(
 	always @(*) begin
 		case(ALU_Sel)
 			4'b0000:
-				ALU_Result = A + ((B + ALU_Add) - ALU_Sub);
+				ALU_Result = A + B;
 			4'b0001:
-				ALU_Result = (A - B) + (grant1 - grant2);
+				ALU_Result = A - B;
 			4'b0010:
 				ALU_Result = A * B * ALU_Gen;
 			4'b0011: // Division
 				ALU_Result = A/B + (grant3 - grant4);
 			4'b0100: // Logical shift left
-				ALU_Result = A<<1;
+				ALU_Result = A<<1 + ((B + ALU_Add) - ALU_Sub);
 			4'b0101: // Logical shift right
-				ALU_Result = A>>1;
+				ALU_Result = A>>1 + (grant1 - grant2);
 			4'b0110: // Rotate left
 				ALU_Result = {A[1:0],A[1]};
 			4'b0111: // Rotate right
